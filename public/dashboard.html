@@ -13,6 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --bg: #0d0714;
@@ -449,6 +451,67 @@
       font-size: 0.75rem;
       color: rgba(157, 120, 233, 0.35);
     }
+
+    .panel--map { margin-top: 1.5rem; }
+
+    #liveMap {
+      height: 380px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 1rem;
+      background: #1a0f26;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .live-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4dffb4;
+      box-shadow: 0 0 6px #4dffb4;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .live-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .live-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(122, 50, 199, 0.08);
+      border: 1px solid rgba(61, 43, 74, 0.6);
+      font-size: 0.78rem;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .live-item__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .live-item__dot--visita { background: #9d78e9; }
+    .live-item__dot--clique { background: #4dffb4; }
+
+    .live-item__region { font-weight: 500; color: #e1d4fb; flex: 1; }
+    .live-item__time   { color: rgba(157, 120, 233, 0.55); flex-shrink: 0; }
+    .live-item__type   { color: rgba(157, 120, 233, 0.7); flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -554,6 +617,15 @@
           </tbody>
         </table>
       </div>
+    </section>
+
+    <section class="panel panel--map" aria-labelledby="mapTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="mapTitle">Acessos em tempo real</h2>
+        <span class="panel__badge live-badge" id="liveCount">— pontos</span>
+      </div>
+      <div id="liveMap"></div>
+      <div id="liveList" class="live-list"></div>
     </section>
 
     <p class="footer-dash">Atualização automática a cada 60s · Moove Hub ©</p>
@@ -893,6 +965,87 @@
         if (chartMonthly) chartMonthly.destroy();
         if (chartDevices) chartDevices.destroy();
       });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const auth = MooveAdminAuth.getAuthHeader();
+      const LIVE_MS = 15000;
+
+      // Mapa Leaflet com tema escuro
+      const map = L.map('liveMap', { zoomControl: true, scrollWheelZoom: false }).setView([-14, -51], 4);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19,
+      }).addTo(map);
+
+      const markerGroup = L.layerGroup().addTo(map);
+
+      function makeIcon(type) {
+        const color = type === 'visita_pagina' ? '#9d78e9' : '#4dffb4';
+        return L.divIcon({
+          className: '',
+          html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};
+                 box-shadow:0 0 8px ${color};border:2px solid rgba(255,255,255,.3)"></div>`,
+          iconSize: [12, 12],
+          iconAnchor: [6, 6],
+        });
+      }
+
+      function fmtTime(iso) {
+        if (!iso) return '';
+        const d = new Date(iso.replace(' ', 'T'));
+        if (isNaN(d)) return iso.slice(11, 16);
+        return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function renderList(events) {
+        const list = document.getElementById('liveList');
+        list.innerHTML = events.slice(0, 20).map(function (e) {
+          const dotClass = e.type === 'visita_pagina' ? 'live-item__dot--visita' : 'live-item__dot--clique';
+          const label = e.type === 'visita_pagina' ? 'Visita' : 'Clique';
+          return '<div class="live-item">' +
+            '<span class="live-item__dot ' + dotClass + '"></span>' +
+            '<span class="live-item__region">' + (e.region || 'Desconhecido') + '</span>' +
+            '<span class="live-item__type">' + label + '</span>' +
+            '<span class="live-item__time">' + fmtTime(e.time) + '</span>' +
+            '</div>';
+        }).join('');
+      }
+
+      async function loadLive() {
+        try {
+          const res = await fetch('/api/live', { headers: auth ? { Authorization: auth } : {} });
+          if (!res.ok) return;
+          const data = await res.json();
+          const events = data.events || [];
+
+          markerGroup.clearLayers();
+          events.forEach(function (e) {
+            if (!e.coords) return;
+            L.marker([e.coords.lat, e.coords.lng], { icon: makeIcon(e.type) })
+              .bindPopup(
+                '<b>' + (e.region || 'Desconhecido') + '</b><br>' +
+                (e.type === 'visita_pagina' ? 'Visita' : 'Clique em: ' + (e.button || '?')) + '<br>' +
+                '<small>' + (e.device || '') + ' · ' + fmtTime(e.time) + '</small>'
+              )
+              .addTo(markerGroup);
+          });
+
+          document.getElementById('liveCount').textContent = events.length + ' pontos';
+          renderList(events);
+        } catch (err) {
+          console.warn('[live]', err);
+        }
+      }
+
+      loadLive();
+      setInterval(loadLive, LIVE_MS);
     })();
   </script>
 </body>

@@ -69,6 +69,14 @@ function createSqliteRepository(sqlite) {
     LIMIT 10
   `);
 
+  const recentEventsStmt = sqlite.prepare(`
+    SELECT id, event_type, button_name, ip_address, device_type, region,
+           datetime(created_at, '${TZ_OFFSET}') AS created_at_local
+    FROM events
+    ORDER BY id DESC
+    LIMIT 50
+  `);
+
   return {
     async insertEvent(payload) {
       const createdAt = payload.created_at || new Date().toISOString();
@@ -89,6 +97,10 @@ function createSqliteRepository(sqlite) {
         peakHourRow: peakHourStmt.get(),
         byRegion: byRegionStmt.all(),
       });
+    },
+
+    async getRecentEvents() {
+      return recentEventsStmt.all();
     },
   };
 }
@@ -173,6 +185,17 @@ function createPostgresRepository(pool) {
         peakHourRow: peakResult.rows[0] || null,
         byRegion: regionResult.rows,
       });
+    },
+
+    async getRecentEvents() {
+      const { rows } = await pool.query(`
+        SELECT id, event_type, button_name, ip_address, device_type, region,
+               (created_at AT TIME ZONE 'America/Sao_Paulo') AS created_at_local
+        FROM events
+        ORDER BY id DESC
+        LIMIT 50
+      `);
+      return rows;
     },
   };
 }

@@ -52,4 +52,16 @@ function resolveRegion(ip) {
   return formatRegionFromLookup(lookup);
 }
 
-module.exports = { resolveRegion, isPrivateOrLocalIp, LOCAL_FALLBACK };
+/**
+ * Retorna lat/lng do IP via geoip-lite, ou null se não disponível.
+ * @param {string} ip
+ * @returns {{ lat: number, lng: number } | null}
+ */
+function resolveCoords(ip) {
+  if (isPrivateOrLocalIp(ip)) return null;
+  const lookup = geoip.lookup(ip);
+  if (!lookup || !lookup.ll) return null;
+  return { lat: lookup.ll[0], lng: lookup.ll[1] };
+}
+
+module.exports = { resolveRegion, resolveCoords, isPrivateOrLocalIp, LOCAL_FALLBACK };

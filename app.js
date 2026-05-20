@@ -6,6 +6,7 @@ const { createTrackRouter } = require('./src/routes/track');
 const { createAnalyticsRouter } = require('./src/routes/analytics');
 const { errorHandler } = require('./src/middleware/errorHandler');
 const { adminAuth } = require('./src/middleware/adminAuth');
+const { resolveCoords } = require('./src/services/geo');
 const {
   getAdminDiagnostics,
   isAdminConfigured,
@@ -39,6 +40,29 @@ function createApp(db) {
 
   app.use('/api/track', createTrackRouter(eventsRepo));
   app.use('/api/analytics', adminAuth, createAnalyticsRouter(eventsRepo));
+
+  app.get('/api/live', adminAuth, async (req, res, next) => {
+    try {
+      const rows = await eventsRepo.getRecentEvents();
+      const events = rows
+        .map((row) => {
+          const coords = resolveCoords(row.ip_address);
+          return {
+            id: row.id,
+            type: row.event_type,
+            button: row.button_name || null,
+            device: row.device_type,
+            region: row.region,
+            coords,
+            time: row.created_at_local,
+          };
+        })
+        .filter((e) => e.coords !== null);
+      res.json({ events });
+    } catch (err) {
+      next(err);
+    }
+  });
 
   app.get('/', (_req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
