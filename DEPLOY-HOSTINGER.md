@@ -140,6 +140,35 @@ No painel do app Node.js → **Redeploy** (ou deploy automático se estiver ativ
 | Sintoma | Solução |
 |---------|---------|
 | Ainda aparece WordPress | Domínio ainda aponta para site antigo; remova o site WP e vincule ao app Node |
+| **503 Service Unavailable** (página inteira) | O Node **não está rodando** — veja seção abaixo |
 | Build falha | Use Node **22.x**; veja logs do deploy |
-| 503 no dashboard | Defina `ADMIN_PASSWORD` |
-| Pasta `data/` sem escrita | File Manager → pasta `data` do app Node → permissão 755 |
+| 503 só no `/dashboard` (JSON) | Defina `ADMIN_PASSWORD` nas variáveis de ambiente |
+| Pasta `data/` sem escrita | O app usa pasta temporária automaticamente; opcional: `DATA_DIR` no hPanel |
+
+### Erro 503 — o deploy “deu certo” mas o site não abre
+
+Isso significa: domínio OK, mas o processo Node **caiu** ou **não iniciou**.
+
+1. **hPanel** → seu app Node → **Deployments** → abra o último deploy → leia o log de **runtime** / `stderr.log`
+2. Procure por `[fatal]` ou `Cannot find module`
+3. Confira no hPanel:
+
+| Item | Valor correto |
+|------|----------------|
+| Node.js | **22.x** (recomendado) |
+| Start command | `npm start` |
+| Entry file | `server.js` |
+| `PORT` | **não defina** (a Hostinger injeta) |
+| `ADMIN_PASSWORD` | **obrigatório** em produção |
+| `DATABASE_URL` | `file:./data/links.db` |
+
+4. Clique em **Restart** (botão ao lado de “Running”)
+5. Teste: https://moovelinks.com.br/api/health — deve retornar `{"ok":true,...}`
+
+Se o log mostrar erro de SQLite/permissão, adicione:
+
+```env
+DATA_DIR=/tmp/linksmoovehub
+```
+
+e faça **Redeploy**.

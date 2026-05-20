@@ -3,9 +3,17 @@ require('dotenv').config();
 const { createApp } = require('./app');
 const { connectDatabase, getDialect } = require('./src/db');
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 async function bootstrap() {
+  console.log(
+    `[boot] node=${process.version} env=${process.env.NODE_ENV || 'development'} port=${PORT}`
+  );
+
+  if (process.env.NODE_ENV === 'production' && process.env.PORT) {
+    console.log('[boot] PORT injetado pela plataforma:', process.env.PORT);
+  }
+
   const db = await connectDatabase();
   const app = createApp(db);
 
