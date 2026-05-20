@@ -469,6 +469,7 @@
       <div class="topbar__actions">
         <span class="status-dot status-dot--loading" id="statusDot" title="Carregando"></span>
         <button type="button" class="btn" id="btnRefresh">↻ Atualizar</button>
+        <button type="button" class="btn" id="btnLogout">Sair</button>
         <a href="/" class="btn">← Página de links</a>
       </div>
     </header>
@@ -555,9 +556,12 @@
     <p class="footer-dash">Atualização automática a cada 60s · Moove Hub ©</p>
   </div>
 
+  <script src="/js/admin-auth.js"></script>
   <script>
     (function () {
       'use strict';
+
+      if (!MooveAdminAuth.requireLogin('/login')) return;
 
       const API_URL = '/api/analytics';
       const REFRESH_MS = 60000;
@@ -847,14 +851,24 @@
         hideError();
 
         try {
-          const res = await fetch(API_URL);
+          const auth = MooveAdminAuth.getAuthHeader();
+          const res = await fetch(API_URL, {
+            headers: auth ? { Authorization: auth } : {},
+          });
+
+          if (res.status === 401) {
+            MooveAdminAuth.clearCredentials();
+            location.replace('/login?next=/dashboard');
+            return;
+          }
+
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
           updateUI(data);
         } catch (err) {
           console.error(err);
           showError(
-            'Não foi possível carregar os analytics. Verifique se o servidor está rodando e tente novamente.'
+            'Não foi possível carregar os analytics. Faça login novamente ou verifique o servidor.'
           );
         } finally {
           setLoading(false);
@@ -862,6 +876,11 @@
       }
 
       $('btnRefresh').addEventListener('click', loadAnalytics);
+
+      $('btnLogout').addEventListener('click', function () {
+        MooveAdminAuth.clearCredentials();
+        location.replace('/login');
+      });
 
       loadAnalytics();
       refreshTimer = setInterval(loadAnalytics, REFRESH_MS);

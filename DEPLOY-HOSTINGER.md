@@ -75,8 +75,8 @@ Na etapa de domínio (ou depois em **Domains** do app):
 ```env
 NODE_ENV=production
 
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=SUA_SENHA_FORTE_AQUI
+ADMIN_USERNAME=seu_email@exemplo.com
+ADMIN_PASSWORD="sua_senha_com_#_se_precisar"
 
 PUBLIC_URL=https://moovelinks.com.br
 DATABASE_URL=file:./data/links.db
@@ -103,7 +103,8 @@ TZ=America/Sao_Paulo
 |-----|----------|
 | https://moovelinks.com.br/ | Página de links Moove Hub |
 | https://moovelinks.com.br/api/health | `{"ok":true,...}` |
-| https://moovelinks.com.br/dashboard | Login Basic Auth → analytics |
+| https://moovelinks.com.br/login | Tela de login do painel admin |
+| https://moovelinks.com.br/dashboard | Analytics em tempo real (após login) |
 
 Credenciais do painel: `ADMIN_USERNAME` + `ADMIN_PASSWORD` do hPanel.
 

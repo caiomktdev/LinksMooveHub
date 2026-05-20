@@ -38,11 +38,15 @@ function createApp(db) {
     res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
   });
 
-  app.get(['/dashboard', '/admin'], adminAuth, (_req, res) => {
+  app.get('/login', (_req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'login.html'));
+  });
+
+  app.get(['/dashboard', '/admin'], (_req, res) => {
     res.sendFile(DASHBOARD_FILE);
   });
 
-  app.get('/dashboard.html', adminAuth, (_req, res) => {
+  app.get('/dashboard.html', (_req, res) => {
     res.redirect(301, '/dashboard');
   });
 

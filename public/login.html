@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d0714" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Moove Hub | Login Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0714;
+      --card: #231431;
+      --border: #3d2b4a;
+      --primary: #7a32c7;
+      --secondary: #9d78e9;
+      --accent: #e1d4fb;
+      --radius: 16px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: #fff;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+    }
+
+    .glow--1 {
+      width: 360px; height: 360px;
+      top: -100px; right: -80px;
+      background: rgba(122, 50, 199, 0.25);
+    }
+
+    .glow--2 {
+      width: 280px; height: 280px;
+      bottom: -60px; left: -60px;
+      background: rgba(157, 120, 233, 0.15);
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 420px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      animation: fadeUp 0.6s var(--ease) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .brand__logo {
+      width: 52px; height: 52px;
+      margin: 0 auto 1rem;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: grid;
+      place-items: center;
+    }
+
+    .brand__logo svg { width: 26px; height: 26px; }
+
+    .brand h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .brand p {
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      color: rgba(225, 212, 251, 0.65);
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+
+    input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(13, 7, 20, 0.6);
+      color: #fff;
+      font: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px rgba(122, 50, 199, 0.25);
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.9rem 1rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), #5e24a0);
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.95; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+    .error {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: rgba(255, 90, 90, 0.12);
+      border: 1px solid rgba(255, 120, 120, 0.35);
+      color: #ffb4b4;
+      font-size: 0.85rem;
+    }
+
+    .error.is-visible { display: block; }
+
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.8rem;
+      color: rgba(157, 120, 233, 0.7);
+      text-decoration: none;
+    }
+
+    .back:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="glow glow--1"></div>
+    <div class="glow glow--2"></div>
+  </div>
+
+  <main class="card">
+    <div class="brand">
+      <div class="brand__logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 5 5-7"/></svg>
+      </div>
+      <h1>Área administrativa</h1>
+      <p>Dashboard de analytics em tempo real</p>
+    </div>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="username">E-mail ou usuário</label>
+        <input id="username" name="username" type="text" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="password">Senha</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn" id="btnSubmit">Entrar no dashboard</button>
+      <p class="error" id="errorBox" role="alert"></p>
+    </form>
+
+    <a href="/" class="back">← Voltar para a página de links</a>
+  </main>
+
+  <script src="/js/admin-auth.js"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('loginForm');
+      const errorBox = document.getElementById('errorBox');
+      const btn = document.getElementById('btnSubmit');
+
+      const params = new URLSearchParams(location.search);
+      const nextPath = params.get('next') || '/dashboard';
+
+      if (MooveAdminAuth.isLoggedIn()) {
+        location.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
+        return;
+      }
+
+      function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.add('is-visible');
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        errorBox.classList.remove('is-visible');
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+          showError('Preencha usuário e senha.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Verificando…';
+
+        const authHeader = 'Basic ' + MooveAdminAuth.encodeBasicAuth(username, password);
+
+        try {
+          const res = await fetch('/api/analytics', {
+            headers: { Authorization: authHeader },
+          });
+
+          if (res.status === 401) {
+            showError('Usuário ou senha incorretos.');
+            return;
+          }
+
+          if (res.status === 503) {
+            showError('Painel não configurado no servidor. Defina ADMIN_PASSWORD no hPanel.');
+            return;
+          }
+
+          if (!res.ok) {
+            showError('Não foi possível validar o login. Tente novamente.');
+            return;
+          }
+
+          MooveAdminAuth.setCredentials(username, password);
+          location.replace(nextPath.startsWith('/') ? nextPath : '/dashboard');
+        } catch {
+          showError('Erro de conexão. Verifique sua internet e tente de novo.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Entrar no dashboard';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
