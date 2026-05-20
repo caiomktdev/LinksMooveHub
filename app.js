@@ -67,8 +67,8 @@ function createApp(db) {
     }
 
     const fs = require('fs');
-    const { getSecretsFilePaths } = require('./src/config/adminCredentials');
-    const secretsPath = getSecretsFilePaths()[0];
+    const { getBestWritablePath } = require('./src/config/adminCredentials');
+    const secretsPath = getBestWritablePath();
 
     try {
       const data = JSON.stringify(
@@ -78,8 +78,8 @@ function createApp(db) {
       );
       fs.writeFileSync(secretsPath, data, 'utf8');
       loadAdminFromFiles();
-      console.log('[setup] credenciais configuradas via /api/setup');
-      return res.json({ ok: true });
+      console.log('[setup] credenciais salvas em:', secretsPath);
+      return res.json({ ok: true, saved_to: secretsPath });
     } catch (err) {
       console.error('[setup] erro ao salvar:', err.message);
       return res.status(500).json({ error: 'Não foi possível salvar o arquivo. Erro: ' + err.message });

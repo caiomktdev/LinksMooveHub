@@ -12,12 +12,47 @@ function projectRoot() {
 
 function getSecretsFilePaths() {
   const root = projectRoot();
+  const cwd = process.cwd();
+
+  // Caminhos fora da pasta nodejs (sobrevivem ao redeploy da Hostinger)
+  const persistentPaths = [];
+  let dir = cwd;
+  for (let i = 0; i < 4; i++) {
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    persistentPaths.push(path.join(parent, 'admin.secrets.json'));
+    dir = parent;
+  }
+
   return [
-    path.join(process.cwd(), 'admin.secrets.json'),
+    // Dentro da pasta do app (primeira tentativa de leitura/escrita)
+    path.join(cwd, 'admin.secrets.json'),
     path.join(root, 'admin.secrets.json'),
-    path.join(process.cwd(), 'data', 'admin.secrets.json'),
+    // Fora da pasta nodejs — persiste entre redeployments
+    ...persistentPaths,
+    // Fallback: pasta data/
+    path.join(cwd, 'data', 'admin.secrets.json'),
     path.join(root, 'data', 'admin.secrets.json'),
   ];
+}
+
+/** Retorna o melhor caminho para SALVAR o arquivo (fora da pasta do deploy) */
+function getBestWritablePath() {
+  const cwd = process.cwd();
+  let dir = cwd;
+  for (let i = 0; i < 4; i++) {
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    const candidate = path.join(parent, 'admin.secrets.json');
+    try {
+      fs.accessSync(path.dirname(candidate), fs.constants.W_OK);
+      return candidate;
+    } catch {
+      dir = parent;
+    }
+  }
+  // Fallback: dentro do próprio app
+  return path.join(cwd, 'admin.secrets.json');
 }
 
 function getEnvFilePaths() {
@@ -134,4 +169,5 @@ module.exports = {
   getConfigSource,
   getAdminDiagnostics,
   getSecretsFilePaths,
+  getBestWritablePath,
 };
