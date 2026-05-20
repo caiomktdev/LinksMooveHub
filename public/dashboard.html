@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d0714" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Moove Hub | Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d0714;
+      --card: #231431;
+      --border: #3d2b4a;
+      --primary: #7a32c7;
+      --secondary: #9d78e9;
+      --accent: #e1d4fb;
+      --green: #4dffb4;
+      --radius: 16px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: #fff;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50%      { opacity: 0.8; }
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(157, 120, 233, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 120, 233, 0.04) 1px, transparent 1px);
+      background-size: 3.5rem 3.5rem;
+      mask-image: radial-gradient(ellipse 90% 80% at 50% 0%, black, transparent);
+    }
+
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      animation: orbFloat 12s ease-in-out infinite;
+    }
+
+    .glow--1 {
+      width: 400px; height: 400px;
+      top: -120px; right: -100px;
+      background: rgba(122, 50, 199, 0.22);
+    }
+
+    .glow--2 {
+      width: 300px; height: 300px;
+      bottom: 0; left: -80px;
+      animation-delay: -6s;
+      background: rgba(157, 120, 233, 0.12);
+    }
+
+    .dash {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      animation: fadeUp 0.7s var(--ease) both;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand__logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 20px rgba(122, 50, 199, 0.4);
+    }
+
+    .brand__logo svg { width: 22px; height: 22px; }
+
+    .brand__title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand__sub {
+      font-size: 0.75rem;
+      color: rgba(157, 120, 233, 0.6);
+      margin-top: 0.1rem;
+    }
+
+    .topbar__actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(35, 20, 49, 0.8);
+      color: var(--accent);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .btn:hover {
+      border-color: rgba(122, 50, 199, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn--primary {
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .status-dot--loading { background: var(--secondary); animation: pulse 1.2s infinite; }
+
+    /* Hero header — total acumulado */
+    .hero-total {
+      background: linear-gradient(160deg, rgba(61, 27, 100, 0.55), rgba(35, 20, 49, 0.85));
+      border: 1px solid rgba(122, 50, 199, 0.35);
+      border-radius: 20px;
+      padding: 1.75rem 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.7s 0.05s var(--ease) both;
+    }
+
+    .hero-total::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(157, 120, 233, 0.6), transparent);
+    }
+
+    .hero-total__label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(157, 120, 233, 0.75);
+    }
+
+    .hero-total__value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.5rem, 8vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-top: 0.35rem;
+      background: linear-gradient(135deg, #fff 20%, var(--accent) 70%, var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-total__meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: rgba(225, 212, 251, 0.55);
+    }
+
+    /* Metric cards grid */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .metrics { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .metric-card {
+      background: rgba(35, 20, 49, 0.75);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem;
+      backdrop-filter: blur(12px);
+      animation: fadeUp 0.7s var(--ease) both;
+      transition: border-color 0.25s, transform 0.25s var(--ease);
+    }
+
+    .metric-card:hover {
+      border-color: rgba(122, 50, 199, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .metric-card:nth-child(1) { animation-delay: 0.1s; }
+    .metric-card:nth-child(2) { animation-delay: 0.15s; }
+    .metric-card:nth-child(3) { animation-delay: 0.2s; }
+    .metric-card:nth-child(4) { animation-delay: 0.25s; }
+
+    .metric-card__icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(122, 50, 199, 0.15);
+      border: 1px solid rgba(122, 50, 199, 0.3);
+      display: grid;
+      place-items: center;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+
+    .metric-card__label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(157, 120, 233, 0.65);
+    }
+
+    .metric-card__value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-top: 0.25rem;
+      color: #fff;
+    }
+
+    .metric-card__hint {
+      font-size: 0.72rem;
+      color: rgba(225, 212, 251, 0.45);
+      margin-top: 0.2rem;
+    }
+
+    /* Charts */
+    .charts-row {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .charts-row { grid-template-columns: 1.4fr 1fr; }
+    }
+
+    .panel {
+      background: rgba(35, 20, 49, 0.75);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      animation: fadeUp 0.7s 0.3s var(--ease) both;
+    }
+
+    .panel__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .panel__title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .panel__badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      background: rgba(122, 50, 199, 0.15);
+      border: 1px solid rgba(122, 50, 199, 0.3);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 280px;
+    }
+
+    .chart-wrap--sm { height: 260px; max-width: 320px; margin: 0 auto; }
+
+    /* Regions table */
+    .panel--table { animation-delay: 0.35s; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(157, 120, 233, 0.65);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid rgba(61, 43, 74, 0.5);
+      color: rgba(225, 212, 251, 0.85);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: rgba(122, 50, 199, 0.06); }
+
+    .region-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(61, 43, 74, 0.8);
+      margin-top: 0.35rem;
+      overflow: hidden;
+    }
+
+    .region-bar__fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transition: width 0.8s var(--ease);
+    }
+
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: rgba(122, 50, 199, 0.2);
+      color: var(--accent);
+    }
+
+    .rank--1 { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+
+    /* States */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(61,43,74,.4) 25%, rgba(122,50,199,.15) 50%, rgba(61,43,74,.4) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+      color: transparent !important;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .error-box {
+      display: none;
+      background: rgba(255, 77, 77, 0.08);
+      border: 1px solid rgba(255, 77, 77, 0.25);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      color: #ff9a9a;
+      font-size: 0.9rem;
+    }
+
+    .error-box.is-visible { display: block; }
+
+    .empty-row td {
+      text-align: center;
+      color: rgba(157, 120, 233, 0.5);
+      padding: 2rem;
+    }
+
+    .footer-dash {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: rgba(157, 120, 233, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="grid-bg"></div>
+    <div class="glow glow--1"></div>
+    <div class="glow glow--2"></div>
+  </div>
+
+  <div class="dash">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 5 5-7"/></svg>
+        </div>
+        <div>
+          <div class="brand__title">Moove Hub Analytics</div>
+          <div class="brand__sub">Painel administrativo · últimos 12 meses</div>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <span class="status-dot status-dot--loading" id="statusDot" title="Carregando"></span>
+        <button type="button" class="btn" id="btnRefresh">↻ Atualizar</button>
+        <a href="/" class="btn">← Página de links</a>
+      </div>
+    </header>
+
+    <div class="error-box" id="errorBox" role="alert"></div>
+
+    <section class="hero-total" aria-labelledby="totalLabel">
+      <p class="hero-total__label" id="totalLabel">Total de acessos acumulados</p>
+      <p class="hero-total__value skeleton" id="totalAcessos">—</p>
+      <p class="hero-total__meta" id="totalMeta">Carregando dados em tempo real…</p>
+    </section>
+
+    <section class="metrics" aria-label="Métricas principais">
+      <article class="metric-card">
+        <div class="metric-card__icon">👁</div>
+        <p class="metric-card__label">Total de visitas</p>
+        <p class="metric-card__value skeleton" id="metricVisitas">—</p>
+        <p class="metric-card__hint">Página visualizada</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-card__icon">🖱</div>
+        <p class="metric-card__label">Cliques em botões</p>
+        <p class="metric-card__value skeleton" id="metricCliques">—</p>
+        <p class="metric-card__hint">Interações nos links</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-card__icon">📱</div>
+        <p class="metric-card__label">Dispositivo predominante</p>
+        <p class="metric-card__value skeleton" id="metricDevice">—</p>
+        <p class="metric-card__hint skeleton" id="metricDeviceHint">—</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-card__icon">⏰</div>
+        <p class="metric-card__label">Horário de pico</p>
+        <p class="metric-card__value skeleton" id="metricPeak">—</p>
+        <p class="metric-card__hint skeleton" id="metricPeakHint">—</p>
+      </article>
+    </section>
+
+    <div class="charts-row">
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Visitas por mês</h2>
+          <span class="panel__badge">12 meses</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chartMonthly" aria-label="Gráfico de visitas por mês"></canvas>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Desktop vs Mobile</h2>
+          <span class="panel__badge">Dispositivos</span>
+        </div>
+        <div class="chart-wrap chart-wrap--sm">
+          <canvas id="chartDevices" aria-label="Gráfico de dispositivos"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel panel--table">
+      <div class="panel__head">
+        <h2 class="panel__title">Principais regiões</h2>
+        <span class="panel__badge">Top 10</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Região</th>
+              <th>Acessos</th>
+              <th>Participação</th>
+            </tr>
+          </thead>
+          <tbody id="regionsBody">
+            <tr><td colspan="4" class="empty-row">Carregando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footer-dash">Atualização automática a cada 60s · Moove Hub ©</p>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const API_URL = '/api/analytics';
+      const REFRESH_MS = 60000;
+
+      const CHART_COLORS = {
+        primary: '#7a32c7',
+        secondary: '#9d78e9',
+        accent: '#e1d4fb',
+        mobile: '#9d78e9',
+        desktop: '#7a32c7',
+        grid: 'rgba(157, 120, 233, 0.08)',
+        text: 'rgba(225, 212, 251, 0.55)',
+      };
+
+      const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+      let chartMonthly = null;
+      let chartDevices = null;
+      let refreshTimer = null;
+
+      const $ = (id) => document.getElementById(id);
+
+      function formatNum(n) {
+        return new Intl.NumberFormat('pt-BR').format(n);
+      }
+
+      function formatMesLabel(ym) {
+        const [y, m] = ym.split('-');
+        return MESES[Number(m) - 1] + '/' + y.slice(2);
+      }
+
+      function buildLast12Months() {
+        const list = [];
+        const now = new Date();
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const mes =
+            d.getFullYear() +
+            '-' +
+            String(d.getMonth() + 1).padStart(2, '0');
+          list.push(mes);
+        }
+        return list;
+      }
+
+      function removeSkeleton(el) {
+        if (el) el.classList.remove('skeleton');
+      }
+
+      function setLoading(loading) {
+        const dot = $('statusDot');
+        dot.classList.toggle('status-dot--loading', loading);
+        dot.title = loading ? 'Carregando' : 'Conectado';
+      }
+
+      function showError(msg) {
+        const box = $('errorBox');
+        box.textContent = msg;
+        box.classList.add('is-visible');
+      }
+
+      function hideError() {
+        $('errorBox').classList.remove('is-visible');
+      }
+
+      function getPredominantDevice(devices) {
+        const mobile = devices.mobile || 0;
+        const desktop = devices.desktop || 0;
+        const total = mobile + desktop;
+        if (total === 0) return { name: '—', hint: 'Sem dados ainda' };
+        const isMobile = mobile >= desktop;
+        const count = isMobile ? mobile : desktop;
+        const pct = Math.round((count / total) * 100);
+        return {
+          name: isMobile ? 'Mobile' : 'Desktop',
+          hint: pct + '% dos acessos',
+        };
+      }
+
+      function chartDefaults() {
+        return {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: CHART_COLORS.text,
+                font: { family: 'Inter', size: 11 },
+                padding: 16,
+              },
+            },
+            tooltip: {
+              backgroundColor: 'rgba(35, 20, 49, 0.95)',
+              borderColor: 'rgba(122, 50, 199, 0.4)',
+              borderWidth: 1,
+              titleColor: '#fff',
+              bodyColor: CHART_COLORS.accent,
+              padding: 12,
+              cornerRadius: 10,
+            },
+          },
+        };
+      }
+
+      function renderMonthlyChart(visitasPorMes) {
+        const months = buildLast12Months();
+        const map = Object.fromEntries(visitasPorMes.map((r) => [r.mes, r.total]));
+        const data = months.map((m) => map[m] || 0);
+        const labels = months.map(formatMesLabel);
+
+        const ctx = $('chartMonthly').getContext('2d');
+
+        if (chartMonthly) chartMonthly.destroy();
+
+        chartMonthly = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Visitas',
+                data,
+                backgroundColor: (ctx) => {
+                  const { chart } = ctx;
+                  const { ctx: c, chartArea } = chart;
+                  if (!chartArea) return CHART_COLORS.primary;
+                  const g = c.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                  g.addColorStop(0, 'rgba(122, 50, 199, 0.2)');
+                  g.addColorStop(1, 'rgba(157, 120, 233, 0.9)');
+                  return g;
+                },
+                borderColor: CHART_COLORS.secondary,
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            ...chartDefaults(),
+            scales: {
+              x: {
+                grid: { color: CHART_COLORS.grid },
+                ticks: { color: CHART_COLORS.text, font: { size: 10 } },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: CHART_COLORS.grid },
+                ticks: {
+                  color: CHART_COLORS.text,
+                  precision: 0,
+                  font: { size: 10 },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function renderDeviceChart(devices) {
+        const ctx = $('chartDevices').getContext('2d');
+
+        if (chartDevices) chartDevices.destroy();
+
+        chartDevices = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Mobile', 'Desktop'],
+            datasets: [
+              {
+                data: [devices.mobile || 0, devices.desktop || 0],
+                backgroundColor: [
+                  'rgba(157, 120, 233, 0.85)',
+                  'rgba(122, 50, 199, 0.85)',
+                ],
+                borderColor: ['#9d78e9', '#7a32c7'],
+                borderWidth: 2,
+                hoverOffset: 8,
+              },
+            ],
+          },
+          options: {
+            ...chartDefaults(),
+            cutout: '68%',
+            plugins: {
+              ...chartDefaults().plugins,
+              legend: { position: 'bottom' },
+            },
+          },
+        });
+      }
+
+      function renderRegions(regions, totalAcessos) {
+        const tbody = $('regionsBody');
+
+        if (!regions.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="empty-row">Nenhum dado de região registrado ainda.</td></tr>';
+          return;
+        }
+
+        const max = regions[0].total || 1;
+
+        tbody.innerHTML = regions
+          .map((row, i) => {
+            const pct = totalAcessos
+              ? Math.round((row.total / totalAcessos) * 100)
+              : 0;
+            const barPct = Math.round((row.total / max) * 100);
+            return (
+              '<tr>' +
+              '<td><span class="rank' +
+              (i === 0 ? ' rank--1' : '') +
+              '">' +
+              (i + 1) +
+              '</span></td>' +
+              '<td><strong>' +
+              escapeHtml(row.regiao) +
+              '</strong>' +
+              '<div class="region-bar"><span class="region-bar__fill" style="width:' +
+              barPct +
+              '%"></span></div></td>' +
+              '<td>' +
+              formatNum(row.total) +
+              '</td>' +
+              '<td>' +
+              pct +
+              '%</td>' +
+              '</tr>'
+            );
+          })
+          .join('');
+      }
+
+      function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+      }
+
+      function updateUI(data) {
+        $('totalAcessos').textContent = formatNum(data.total_acessos);
+        removeSkeleton($('totalAcessos'));
+
+        const now = new Date().toLocaleString('pt-BR');
+        $('totalMeta').textContent =
+          data.total_visitas +
+          ' visitas · ' +
+          data.total_cliques +
+          ' cliques · Atualizado em ' +
+          now;
+
+        $('metricVisitas').textContent = formatNum(data.total_visitas);
+        removeSkeleton($('metricVisitas'));
+
+        $('metricCliques').textContent = formatNum(data.total_cliques);
+        removeSkeleton($('metricCliques'));
+
+        const device = getPredominantDevice(data.acessos_por_dispositivo);
+        $('metricDevice').textContent = device.name;
+        $('metricDeviceHint').textContent = device.hint;
+        removeSkeleton($('metricDevice'));
+        removeSkeleton($('metricDeviceHint'));
+
+        if (data.horario_pico) {
+          $('metricPeak').textContent = data.horario_pico.label;
+          $('metricPeakHint').textContent =
+            formatNum(data.horario_pico.total) + ' acessos nesse horário';
+        } else {
+          $('metricPeak').textContent = '—';
+          $('metricPeakHint').textContent = 'Sem dados suficientes';
+        }
+        removeSkeleton($('metricPeak'));
+        removeSkeleton($('metricPeakHint'));
+
+        const mesData = data.visitas_por_mes?.length
+          ? data.visitas_por_mes
+          : data.acessos_por_mes;
+
+        renderMonthlyChart(mesData);
+        renderDeviceChart(data.acessos_por_dispositivo);
+        renderRegions(data.principais_regioes, data.total_acessos);
+      }
+
+      async function loadAnalytics() {
+        setLoading(true);
+        hideError();
+
+        try {
+          const res = await fetch(API_URL);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          updateUI(data);
+        } catch (err) {
+          console.error(err);
+          showError(
+            'Não foi possível carregar os analytics. Verifique se o servidor está rodando e tente novamente.'
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      $('btnRefresh').addEventListener('click', loadAnalytics);
+
+      loadAnalytics();
+      refreshTimer = setInterval(loadAnalytics, REFRESH_MS);
+
+      window.addEventListener('beforeunload', function () {
+        clearInterval(refreshTimer);
+        if (chartMonthly) chartMonthly.destroy();
+        if (chartDevices) chartDevices.destroy();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "links-moove-hub",
+  "version": "1.0.0",
+  "description": "Página de links MOOVE com Analytics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "geoip-lite": "^1.4.10",
+    "pg": "^8.13.3"
+  }
+}

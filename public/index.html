@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0714" />
+  <meta name="description" content="Moove Hub — links oficiais, diagnóstico, automação e materiais exclusivos." />
+  <title>Moove Hub | Links</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* Design tokens — inspirado em grupo.rugido.com/playbook */
+    :root {
+      --bg: #0d0714;
+      --card-bg: #231431;
+      --border: #3d2b4a;
+      --primary: #7a32c7;
+      --secondary: #9d78e9;
+      --accent: #e1d4fb;
+      --green: #4dffb4;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --radius: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: #fff;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Keyframes (Rugido) ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(26px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 6px 1px rgba(122, 50, 199, 0.5); }
+      50%      { box-shadow: 0 0 22px 6px rgba(122, 50, 199, 0.85); }
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-16px) scale(1.04); }
+    }
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+    @keyframes scanLine {
+      0%   { top: -8%; opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { top: 108%; opacity: 0; }
+    }
+    @keyframes ripple {
+      to { transform: scale(4); opacity: 0; }
+    }
+    @keyframes beamPulse {
+      0%, 100% { opacity: 0.4; transform: scaleX(0.85); }
+      50%      { opacity: 1; transform: scaleX(1); }
+    }
+
+    /* ── Background ── */
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(157, 120, 233, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 120, 233, 0.05) 1px, transparent 1px);
+      background-size: 3.5rem 3.5rem;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+      -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+    }
+
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orbFloat 10s ease-in-out infinite;
+    }
+
+    .glow--purple {
+      width: 320px;
+      height: 320px;
+      top: -100px;
+      right: -80px;
+      background: radial-gradient(circle, rgba(122, 50, 199, 0.28) 0%, transparent 70%);
+    }
+
+    .glow--violet {
+      width: 260px;
+      height: 260px;
+      bottom: 10%;
+      left: -70px;
+      animation-delay: -5s;
+      background: radial-gradient(circle, rgba(157, 120, 233, 0.18) 0%, transparent 70%);
+    }
+
+    .glow--top {
+      width: 100%;
+      height: 40%;
+      top: 0;
+      left: 0;
+      border-radius: 0;
+      filter: none;
+      animation: none;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(122, 50, 199, 0.2) 0%, transparent 70%);
+    }
+
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(157, 120, 233, 0.5), transparent);
+      animation: scanLine 8s linear infinite;
+      opacity: 0.6;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 460px;
+      margin: 0 auto;
+      padding: max(1.75rem, env(safe-area-inset-top)) 1.25rem max(2.5rem, env(safe-area-inset-bottom));
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Hero / perfil ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .anim-fade-up {
+      animation: fadeUp 0.85s var(--ease-out) both;
+    }
+
+    .d100 { animation-delay: 100ms; }
+    .d200 { animation-delay: 200ms; }
+    .d300 { animation-delay: 300ms; }
+    .d400 { animation-delay: 400ms; }
+    .d500 { animation-delay: 500ms; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.85s var(--ease-out), transform 0.85s var(--ease-out);
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .badge-free {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(122, 50, 199, 0.12);
+      border: 1px solid rgba(122, 50, 199, 0.35);
+      border-radius: 6px;
+      padding: 0.3rem 0.85rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .badge-free::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--secondary);
+      box-shadow: 0 0 8px rgba(157, 120, 233, 0.9);
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    .hero__title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(1.75rem, 6vw, 2.1rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 20%, var(--accent) 55%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero__subtitle {
+      margin-top: 0.65rem;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(225, 212, 251, 0.65);
+      max-width: 340px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 1.5rem auto;
+      max-width: 200px;
+      background: linear-gradient(90deg, transparent, rgba(122, 50, 199, 0.5), transparent);
+    }
+
+    /* Stats pills (estilo Rugido) */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+
+    .stat-pill {
+      background: rgba(35, 20, 49, 0.75);
+      border: 1px solid rgba(61, 43, 74, 0.9);
+      border-radius: 12px;
+      padding: 0.65rem 0.4rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: border-color 0.25s, transform 0.25s var(--ease-out);
+    }
+
+    .stat-pill:hover {
+      border-color: rgba(122, 50, 199, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .stat-pill__value {
+      display: block;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--secondary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-pill__label {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(157, 120, 233, 0.65);
+    }
+
+    /* ── Links ── */
+    .links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+  .link-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      width: 100%;
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(61, 43, 74, 0.85);
+      background: rgba(35, 20, 49, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.25s var(--ease-out), border-color 0.25s, box-shadow 0.25s;
+      animation: floatCard 5s ease-in-out infinite;
+    }
+
+    .links__item:nth-child(even) .link-card { animation-delay: -2.5s; }
+
+    .link-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 42%, rgba(157, 120, 233, 0.08) 50%, transparent 58%);
+      transform: translateX(-120%);
+      transition: transform 0.65s ease;
+    }
+
+    .link-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      border-color: rgba(122, 50, 199, 0.55);
+      box-shadow: 0 12px 40px rgba(13, 7, 20, 0.6), 0 0 24px rgba(122, 50, 199, 0.15);
+      animation-play-state: paused;
+    }
+
+    .link-card:hover::before { transform: translateX(120%); }
+
+    .link-card:active { transform: scale(0.98); }
+
+    .link-card__icon {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(122, 50, 199, 0.15);
+      border: 1px solid rgba(122, 50, 199, 0.3);
+      display: grid;
+      place-items: center;
+    }
+
+    .link-card__icon svg {
+      width: 22px;
+      height: 22px;
+      color: var(--secondary);
+    }
+
+    .link-card__text { flex: 1; text-align: left; line-height: 1.3; }
+
+    .link-card__arrow {
+      color: rgba(157, 120, 233, 0.5);
+      font-size: 1.1rem;
+      transition: transform 0.3s var(--ease-out), color 0.3s;
+    }
+
+    .link-card:hover .link-card__arrow {
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    /* Item indisponível — em breve */
+    .link-card--soon {
+      opacity: 0.38;
+      cursor: not-allowed;
+      pointer-events: none;
+      animation: none;
+      filter: saturate(0.5);
+      border-color: rgba(61, 43, 74, 0.5);
+      background: rgba(35, 20, 49, 0.45);
+    }
+
+    .link-card--soon::before { display: none; }
+
+    .link-card--soon:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: rgba(61, 43, 74, 0.5);
+    }
+
+    .link-card--soon .link-card__icon {
+      background: rgba(122, 50, 199, 0.08);
+      border-color: rgba(122, 50, 199, 0.15);
+    }
+
+    .link-card--soon .link-card__icon svg {
+      color: rgba(157, 120, 233, 0.45);
+    }
+
+    .link-card--soon .link-card__text {
+      color: rgba(225, 212, 251, 0.55);
+    }
+
+    .link-card--soon .link-card__tag {
+      flex-shrink: 0;
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(157, 120, 233, 0.5);
+      padding: 0.2rem 0.5rem;
+      border: 1px dashed rgba(157, 120, 233, 0.25);
+      border-radius: 6px;
+    }
+
+    /* CTA principal — shimmer Rugido */
+    .link-card--cta {
+      padding: 1.1rem 1.15rem;
+      border: none;
+      border-radius: 9999px;
+      animation: floatCard 4s ease-in-out infinite, pulseGlow 2.5s ease-in-out infinite;
+    }
+
+    .link-card--cta::before {
+      background: linear-gradient(135deg, #7a32c7, #9d78e9, #7a32c7);
+      background-size: 200%;
+      animation: shimmer 3s linear infinite;
+      transform: none;
+      opacity: 1;
+    }
+
+    .link-card--cta::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+    }
+
+    .link-card--cta .link-card__inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      width: 100%;
+    }
+
+    .link-card--cta .link-card__icon {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .link-card--cta .link-card__icon svg { color: #fff; }
+
+    .link-card--cta .link-card__badge {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 0.1rem;
+    }
+
+    .cta-glow {
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 65%;
+      height: 20px;
+      background: rgba(157, 120, 233, 0.35);
+      border-radius: 50%;
+      filter: blur(14px);
+      pointer-events: none;
+    }
+
+    .links__item--cta { position: relative; margin: 0.25rem 0 0.5rem; }
+
+    /* Ripple */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(225, 212, 251, 0.35);
+      transform: scale(0);
+      animation: ripple 0.55s ease-out forwards;
+      pointer-events: none;
+    }
+
+    /* Beam decorativo abaixo do hero */
+    .beam-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 1.25rem;
+      opacity: 0.7;
+    }
+
+    .beam {
+      height: 1px;
+      border-radius: 1px;
+      animation: beamPulse 3s ease-in-out infinite;
+    }
+
+    .beam--1 {
+      background: linear-gradient(90deg, transparent, rgba(122, 50, 199, 0.5), transparent);
+      animation-delay: 0.1s;
+    }
+
+    .beam--2 {
+      background: linear-gradient(90deg, transparent, var(--secondary), transparent);
+      animation-delay: 0.2s;
+    }
+
+    .beam--3 {
+      background: linear-gradient(90deg, transparent, rgba(122, 50, 199, 0.35), transparent);
+      animation-delay: 0.3s;
+    }
+
+    .footer {
+      margin-top: auto;
+      padding-top: 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: rgba(157, 120, 233, 0.4);
+    }
+
+    .footer span {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 600;
+    }
+
+    @media (min-width: 480px) {
+      .page { padding-top: 2.25rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="grid-bg"></div>
+    <div class="glow glow--top"></div>
+    <div class="glow glow--purple"></div>
+    <div class="glow glow--violet"></div>
+    <div class="scan-line"></div>
+  </div>
+
+  <main class="page">
+    <header class="hero anim-fade-up">
+      <span class="badge-free">Links Oficiais</span>
+      <h1 class="hero__title">Moove Hub</h1>
+      <p class="hero__subtitle">
+        Transforme sua presença digital. Escolha abaixo o caminho ideal para o seu negócio.
+      </p>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="stats anim-fade-up d200">
+        <div class="stat-pill">
+          <span class="stat-pill__value">100%</span>
+          <span class="stat-pill__label">Digital</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill__value">Rápido</span>
+          <span class="stat-pill__label">Acesso</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill__value">Moove</span>
+          <span class="stat-pill__label">Oficial</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="beam-row anim-fade-up d300" aria-hidden="true">
+      <div class="beam beam--1"></div>
+      <div class="beam beam--2"></div>
+      <div class="beam beam--3"></div>
+    </div>
+
+    <nav aria-label="Links principais">
+      <ul class="links">
+        <li class="links__item reveal">
+          <a
+            class="link-card"
+            href="https://moovehubb.com.br/"
+            data-track="acesse_nosso_site"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="link-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </span>
+            <span class="link-card__text">Acesse nosso site</span>
+            <span class="link-card__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+
+        <li class="links__item links__item--cta reveal">
+          <a
+            class="link-card link-card--cta"
+            href="https://moovehubb.com.br/"
+            data-track="solicitar_diagnostico"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="cta-glow" aria-hidden="true"></span>
+            <span class="link-card__inner">
+              <span class="link-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </span>
+              <span class="link-card__text">
+                <span class="link-card__badge">Destaque · CTA</span>
+                Solicitar um diagnóstico
+              </span>
+              <span class="link-card__arrow" aria-hidden="true">→</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="links__item reveal">
+          <a
+            class="link-card"
+            href="https://wa.me/5532987168571?text=Ol%C3%A1%2C%20gostaria%20de%20uma%20p%C3%A1gina%20de%20links%20de%20alta%20convers%C3%A3o%2C%20pode%20me%20ajudar%3F"
+            data-track="quero_pagina_de_links"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="link-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </span>
+            <span class="link-card__text">Quero uma página de links</span>
+            <span class="link-card__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+
+        <li class="links__item reveal">
+          <a
+            class="link-card"
+            href="https://wa.me/5532987168571?text=Ol%C3%A1%2C%20gostaria%20de%20automatizar%20minhas%20redes%2C%20pode%20me%20ajudar%3F"
+            data-track="automatizar_redes"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="link-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <span class="link-card__text">Automatizar minhas redes</span>
+            <span class="link-card__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+
+        <li class="links__item reveal">
+          <span class="link-card link-card--soon" aria-disabled="true" title="Disponível em breve">
+            <span class="link-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </span>
+            <span class="link-card__text">Playbook - em breve</span>
+            <span class="link-card__tag" aria-hidden="true">Em breve</span>
+          </span>
+        </li>
+      </ul>
+    </nav>
+
+    <footer class="footer reveal">
+      © <span>Moove Hub</span> · Todos os direitos reservados
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const TRACK_URL = '/api/track';
+      const REDIRECT_DELAY_MS = 1;
+
+      function getDeviceType() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(
+          navigator.userAgent
+        )
+          ? 'mobile'
+          : 'desktop';
+      }
+
+      function trackEvent(eventType, buttonName) {
+        const payload = { event_type: eventType };
+        if (buttonName) payload.button_name = buttonName;
+
+        return fetch(TRACK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Device-Type': getDeviceType(),
+          },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(function (err) {
+          console.warn('[Moove Analytics]', err);
+        });
+      }
+
+      function addRipple(button, event) {
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = event.clientX - rect.left - size / 2 + 'px';
+        ripple.style.top = event.clientY - rect.top - size / 2 + 'px';
+        button.appendChild(ripple);
+        ripple.addEventListener('animationend', function () {
+          ripple.remove();
+        });
+      }
+
+      function initScrollReveal() {
+        var reveals = document.querySelectorAll('.reveal');
+        if (!('IntersectionObserver' in window)) {
+          reveals.forEach(function (el) { el.classList.add('is-visible'); });
+          return;
+        }
+
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+        );
+
+        reveals.forEach(function (el) { observer.observe(el); });
+      }
+
+      function trackPageVisit() {
+        trackEvent('visita_pagina');
+      }
+
+      function bindLinkTracking() {
+        document.querySelectorAll('[data-track]').forEach(function (link) {
+          link.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            var buttonName = link.getAttribute('data-track');
+            var destination = link.getAttribute('href');
+            var openInNewTab = link.getAttribute('target') === '_blank';
+
+            addRipple(link, event);
+
+            trackEvent('clique_botao', buttonName).finally(function () {
+              setTimeout(function () {
+                if (openInNewTab) {
+                  window.open(destination, '_blank', 'noopener,noreferrer');
+                } else {
+                  window.location.href = destination;
+                }
+              }, REDIRECT_DELAY_MS);
+            });
+          });
+        });
+      }
+
+      function init() {
+        initScrollReveal();
+        trackPageVisit();
+        bindLinkTracking();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
