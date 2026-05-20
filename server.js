@@ -1,4 +1,7 @@
-require('dotenv').config();
+const path = require('path');
+
+// hPanel + arquivo .env na raiz do app (File Manager), se variáveis do painel falharem
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const { createApp } = require('./app');
 const { connectDatabase, getDialect } = require('./src/db');

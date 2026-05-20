@@ -6,7 +6,7 @@ const { createTrackRouter } = require('./src/routes/track');
 const { createAnalyticsRouter } = require('./src/routes/analytics');
 const { errorHandler } = require('./src/middleware/errorHandler');
 const { adminAuth } = require('./src/middleware/adminAuth');
-const { isAdminConfigured } = require('./src/config/adminCredentials');
+const { getAdminDiagnostics } = require('./src/config/adminCredentials');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DASHBOARD_FILE = path.join(PUBLIC_DIR, 'dashboard.html');
@@ -29,7 +29,7 @@ function createApp(db) {
       ok: true,
       dialect: getDialect(),
       env: process.env.NODE_ENV || 'development',
-      admin_configured: isAdminConfigured(),
+      ...getAdminDiagnostics(),
     });
   });
 
