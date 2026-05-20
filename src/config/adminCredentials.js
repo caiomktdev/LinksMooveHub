@@ -131,6 +131,7 @@ module.exports = {
   getAdminUsername,
   getAdminPassword,
   isAdminConfigured,
+  getConfigSource,
   getAdminDiagnostics,
   getSecretsFilePaths,
 };
