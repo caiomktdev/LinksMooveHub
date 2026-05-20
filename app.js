@@ -6,7 +6,11 @@ const { createTrackRouter } = require('./src/routes/track');
 const { createAnalyticsRouter } = require('./src/routes/analytics');
 const { errorHandler } = require('./src/middleware/errorHandler');
 const { adminAuth } = require('./src/middleware/adminAuth');
-const { getAdminDiagnostics } = require('./src/config/adminCredentials');
+const {
+  getAdminDiagnostics,
+  isAdminConfigured,
+  loadAdminFromFiles,
+} = require('./src/config/adminCredentials');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DASHBOARD_FILE = path.join(PUBLIC_DIR, 'dashboard.html');
@@ -42,6 +46,44 @@ function createApp(db) {
 
   app.get('/login', (_req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, 'login.html'));
+  });
+
+  // Setup único — só funciona enquanto ADMIN_PASSWORD não estiver configurado
+  app.get('/setup', (_req, res) => {
+    if (isAdminConfigured()) {
+      return res.redirect(302, '/login');
+    }
+    res.sendFile(path.join(PUBLIC_DIR, 'setup.html'));
+  });
+
+  app.post('/api/setup', async (req, res) => {
+    if (isAdminConfigured()) {
+      return res.status(403).json({ error: 'Credenciais já configuradas.' });
+    }
+
+    const { username, password } = req.body || {};
+    if (!username || !password || String(password).length < 6) {
+      return res.status(400).json({ error: 'Usuário e senha (mín. 6 chars) são obrigatórios.' });
+    }
+
+    const fs = require('fs');
+    const { getSecretsFilePaths } = require('./src/config/adminCredentials');
+    const secretsPath = getSecretsFilePaths()[0];
+
+    try {
+      const data = JSON.stringify(
+        { username: String(username).trim(), password: String(password) },
+        null,
+        2
+      );
+      fs.writeFileSync(secretsPath, data, 'utf8');
+      loadAdminFromFiles();
+      console.log('[setup] credenciais configuradas via /api/setup');
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error('[setup] erro ao salvar:', err.message);
+      return res.status(500).json({ error: 'Não foi possível salvar o arquivo. Erro: ' + err.message });
+    }
   });
 
   app.get(['/dashboard', '/admin'], (_req, res) => {

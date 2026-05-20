@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Moove Hub | Setup Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0d0714;
+      color: #fff;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+    }
+    .card {
+      width: min(100%, 440px);
+      background: #231431;
+      border: 1px solid #3d2b4a;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    }
+    h1 { font-size: 1.3rem; margin-bottom: .35rem; }
+    .sub { font-size: .85rem; color: rgba(225,212,251,.6); margin-bottom: 1.5rem; }
+    label { display: block; font-size: .8rem; color: #e1d4fb; margin-bottom: .4rem; }
+    .field { margin-bottom: 1rem; }
+    input {
+      width: 100%; padding: .85rem 1rem;
+      border-radius: 12px; border: 1px solid #3d2b4a;
+      background: rgba(13,7,20,.6); color: #fff; font: inherit;
+    }
+    input:focus { outline: none; border-color: #9d78e9; box-shadow: 0 0 0 3px rgba(122,50,199,.25); }
+    .btn {
+      width: 100%; margin-top: .5rem; padding: .9rem;
+      border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #7a32c7, #5e24a0);
+      color: #fff; font-weight: 700; font-size: .95rem; cursor: pointer;
+    }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .msg {
+      display: none; margin-top: 1rem; padding: .75rem 1rem;
+      border-radius: 10px; font-size: .85rem;
+    }
+    .msg.ok { background: rgba(77,255,180,.1); border: 1px solid rgba(77,255,180,.35); color: #4dffb4; }
+    .msg.err { background: rgba(255,90,90,.12); border: 1px solid rgba(255,120,120,.35); color: #ffb4b4; }
+    .msg.show { display: block; }
+    .warn {
+      margin-bottom: 1.5rem; padding: .75rem 1rem;
+      border-radius: 10px; font-size: .8rem;
+      background: rgba(255,200,0,.08); border: 1px solid rgba(255,200,0,.3); color: #ffe080;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>⚙️ Setup inicial do painel</h1>
+    <p class="sub">Configure as credenciais do dashboard de analytics.</p>
+    <div class="warn">⚠️ Esta página desaparece automaticamente após a configuração.</div>
+    <form id="form">
+      <div class="field">
+        <label>E-mail / usuário admin</label>
+        <input id="username" type="text" autocomplete="off" required />
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="password" type="password" required />
+      </div>
+      <div class="field">
+        <label>Confirmar senha</label>
+        <input id="confirm" type="password" required />
+      </div>
+      <button class="btn" id="btn">Salvar credenciais</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
+  <script>
+    document.getElementById('form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm  = document.getElementById('confirm').value;
+      const msg = document.getElementById('msg');
+      const btn = document.getElementById('btn');
+
+      msg.className = 'msg'; msg.textContent = '';
+
+      if (password !== confirm) {
+        msg.textContent = 'As senhas não coincidem.';
+        msg.className = 'msg err show'; return;
+      }
+      if (password.length < 6) {
+        msg.textContent = 'Senha deve ter ao menos 6 caracteres.';
+        msg.className = 'msg err show'; return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Salvando…';
+
+      try {
+        const res = await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.textContent = '✅ Credenciais salvas! Redirecionando para o login…';
+          msg.className = 'msg ok show';
+          setTimeout(() => location.replace('/login'), 2500);
+        } else {
+          msg.textContent = data.error || 'Erro ao salvar.';
+          msg.className = 'msg err show';
+          btn.disabled = false; btn.textContent = 'Salvar credenciais';
+        }
+      } catch {
+        msg.textContent = 'Erro de conexão.';
+        msg.className = 'msg err show';
+        btn.disabled = false; btn.textContent = 'Salvar credenciais';
+      }
+    });
+  </script>
+</body>
+</html>
