@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const { createApp } = require('./app');
 const { connectDatabase, getDialect } = require('./src/db');
+const { isAdminConfigured } = require('./src/config/adminCredentials');
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -18,6 +19,9 @@ async function bootstrap() {
   const app = createApp(db);
 
   console.log(`[db] ${getDialect()} conectado`);
+  console.log(
+    `[admin] painel ${isAdminConfigured() ? 'configurado' : 'NÃO configurado — defina ADMIN_PASSWORD no hPanel'}`
+  );
 
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`LinksMooveHub em http://0.0.0.0:${PORT}`);

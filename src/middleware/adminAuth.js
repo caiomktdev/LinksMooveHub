@@ -1,17 +1,22 @@
 const crypto = require('crypto');
+const {
+  getAdminUsername,
+  getAdminPassword,
+  isAdminConfigured,
+} = require('../config/adminCredentials');
 
 /**
  * HTTP Basic Auth para dashboard e API de analytics.
- * Credenciais: ADMIN_USERNAME + ADMIN_PASSWORD (.env)
  */
 function adminAuth(req, res, next) {
-  const expectedUser = process.env.ADMIN_USERNAME || 'admin';
-  const expectedPass = process.env.ADMIN_PASSWORD;
+  const expectedUser = getAdminUsername();
+  const expectedPass = getAdminPassword();
 
-  if (!expectedPass) {
+  if (!isAdminConfigured()) {
     if (process.env.NODE_ENV === 'production') {
       return res.status(503).json({
-        error: 'Painel administrativo não configurado. Defina ADMIN_PASSWORD no servidor.',
+        error:
+          'Painel administrativo não configurado. Defina ADMIN_PASSWORD no hPanel e faça Redeploy.',
       });
     }
     console.warn('[admin] ADMIN_PASSWORD ausente — dashboard aberto em desenvolvimento.');
@@ -58,4 +63,4 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-module.exports = { adminAuth };
+module.exports = { adminAuth, isAdminConfigured };

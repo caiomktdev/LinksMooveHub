@@ -72,17 +72,21 @@ Na etapa de domínio (ou depois em **Domains** do app):
 
 **Environment variables** → cole ou importe:
 
-```env
-NODE_ENV=production
+No hPanel → app Node → **Environment variables** → adicione **uma variável por linha** (não use “Import .env” se a senha tiver `#`):
 
-ADMIN_USERNAME=seu_email@exemplo.com
-ADMIN_PASSWORD="sua_senha_com_#_se_precisar"
+| Nome | Valor |
+|------|--------|
+| `NODE_ENV` | `production` |
+| `ADMIN_USERNAME` | seu e-mail de login |
+| `ADMIN_PASSWORD` | sua senha (ver nota abaixo) |
+| `PUBLIC_URL` | `https://moovelinks.com.br` |
+| `DATABASE_URL` | `file:./data/links.db` |
 
-PUBLIC_URL=https://moovelinks.com.br
-DATABASE_URL=file:./data/links.db
-GEOIP_LOCAL_FALLBACK=Região de Teste
-TZ=America/Sao_Paulo
-```
+**Senha com `#`:** no formulário do hPanel, digite o valor **sem aspas**. Se importar arquivo `.env`, use aspas simples: `ADMIN_PASSWORD='sua_senha_aqui'`.
+
+Depois de salvar → **Redeploy** obrigatório.
+
+Teste: https://moovelinks.com.br/api/health deve mostrar `"admin_configured":true`.
 
 **Não defina `PORT`** — a Hostinger injeta automaticamente.
 
