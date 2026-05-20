@@ -1,5 +1,8 @@
 const VALID_EVENT_TYPES = ['visita_pagina', 'clique_botao'];
 
+// UTC-3 (America/Sao_Paulo — BRT sem horário de verão)
+const TZ_OFFSET = '-3 hours';
+
 const SINCE_SQLITE = `datetime(created_at) >= datetime('now', '-12 months')`;
 const SINCE_POSTGRES = `created_at >= NOW() - INTERVAL '12 months'`;
 
@@ -26,7 +29,7 @@ function createSqliteRepository(sqlite) {
   `);
 
   const byMonthStmt = sqlite.prepare(`
-    SELECT strftime('%Y-%m', created_at) AS mes, COUNT(*) AS total
+    SELECT strftime('%Y-%m', datetime(created_at, '${TZ_OFFSET}')) AS mes, COUNT(*) AS total
     FROM events
     WHERE ${SINCE_SQLITE}
     GROUP BY mes
@@ -34,7 +37,7 @@ function createSqliteRepository(sqlite) {
   `);
 
   const visitasPorMesStmt = sqlite.prepare(`
-    SELECT strftime('%Y-%m', created_at) AS mes, COUNT(*) AS total
+    SELECT strftime('%Y-%m', datetime(created_at, '${TZ_OFFSET}')) AS mes, COUNT(*) AS total
     FROM events
     WHERE ${SINCE_SQLITE} AND event_type = 'visita_pagina'
     GROUP BY mes
@@ -49,7 +52,7 @@ function createSqliteRepository(sqlite) {
   `);
 
   const peakHourStmt = sqlite.prepare(`
-    SELECT CAST(strftime('%H', created_at) AS INTEGER) AS hora, COUNT(*) AS total
+    SELECT CAST(strftime('%H', datetime(created_at, '${TZ_OFFSET}')) AS INTEGER) AS hora, COUNT(*) AS total
     FROM events
     WHERE ${SINCE_SQLITE}
     GROUP BY hora
@@ -133,12 +136,12 @@ function createPostgresRepository(pool) {
       ] = await Promise.all([
         pool.query(totalsSql),
         pool.query(`
-          SELECT to_char(created_at, 'YYYY-MM') AS mes, COUNT(*)::int AS total
+          SELECT to_char(created_at AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM') AS mes, COUNT(*)::int AS total
           FROM events WHERE ${SINCE_POSTGRES}
           GROUP BY mes ORDER BY mes ASC
         `),
         pool.query(`
-          SELECT to_char(created_at, 'YYYY-MM') AS mes, COUNT(*)::int AS total
+          SELECT to_char(created_at AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM') AS mes, COUNT(*)::int AS total
           FROM events
           WHERE ${SINCE_POSTGRES} AND event_type = 'visita_pagina'
           GROUP BY mes ORDER BY mes ASC
@@ -149,7 +152,7 @@ function createPostgresRepository(pool) {
           GROUP BY device_type
         `),
         pool.query(`
-          SELECT EXTRACT(HOUR FROM created_at)::int AS hora, COUNT(*)::int AS total
+          SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'America/Sao_Paulo')::int AS hora, COUNT(*)::int AS total
           FROM events WHERE ${SINCE_POSTGRES}
           GROUP BY hora ORDER BY total DESC LIMIT 1
         `),
