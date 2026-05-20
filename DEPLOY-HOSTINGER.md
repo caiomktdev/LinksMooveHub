@@ -1,134 +1,137 @@
-# Deploy na Hostinger — Links Moove Hub
+# Deploy na Hostinger — moovelinks.com.br
 
-Guia para publicar o projeto no **hPanel** (Node.js Web App).
+Guia para substituir o WordPress em **moovelinks.com.br** pelo projeto **Links Moove Hub** (Node.js + GitHub).
 
-## Requisitos
-
-- Plano Hostinger com **Node.js Web Apps** (Business Web, Cloud, etc.)
-- Repositório Git (GitHub/GitLab) **ou** upload via Gerenciador de Arquivos / SSH
-- Node.js **22.x** recomendado (mínimo 22.5 por causa do `node:sqlite`)
+Repositório: https://github.com/caiomktdev/LinksMooveHub
 
 ---
 
-## 1. Preparar o repositório
+## Importante: não use só o Gerenciador de Arquivos
 
-Confirme na raiz do projeto:
+O app Node.js da Hostinger **não roda dentro de `public_html`** como um site PHP/WordPress. Ele roda em ambiente Node separado (`/nodejs` no servidor).
 
-| Arquivo | Função |
-|---------|--------|
-| `server.js` | Entrada da aplicação |
-| `app.js` | Express + rotas |
-| `package.json` | `"start": "node server.js"` |
-| `public/` | `index.html`, `dashboard.html` |
+Por isso, o caminho correto é:
 
-**Não commite** `.env` nem `data/*.db`.
+1. **Remover** o site WordPress atual em `moovelinks.com.br`
+2. **Criar** um novo **Node.js Web App** conectado ao GitHub
+3. **Vincular** o domínio `moovelinks.com.br` ao novo app
+
+Apagar só arquivos em `public_html` **não** coloca o Links Moove Hub no ar.
 
 ---
 
-## 2. Criar aplicação Node no hPanel
+## Passo 1 — Backup (recomendado)
 
-1. **Websites** → **Add Website** → **Node.js Web App**
-2. Conecte o repositório Git ou faça upload do projeto
-3. Configuração:
+No hPanel → `moovelinks.com.br` → **Backups** → baixe um backup antes de remover o site WordPress.
+
+---
+
+## Passo 2 — Remover o site WordPress
+
+1. **Sites** → localize **moovelinks.com.br**
+2. Menu **⋯** (três pontos) ou **Detalhes do site** → **Remover site** / **Delete website**
+3. Confirme a exclusão
+
+O domínio continua na sua conta; apenas a hospedagem WordPress é removida.
+
+> Se os bancos MySQL do WordPress já foram excluídos, ótimo. Caso ainda existam, em **Bancos de dados** → apague os que eram só do WordPress.
+
+---
+
+## Passo 3 — Criar Node.js Web App (GitHub)
+
+1. **Sites** → **+ Adicionar site**
+2. Escolha **Node.js Web App** (ou **Aplicação Node.js**)
+3. **Importar repositório Git** → autorize o GitHub
+4. Selecione: **`caiomktdev/LinksMooveHub`**
+5. Branch: **`main`**
+
+### Configuração de build
 
 | Campo | Valor |
 |-------|--------|
-| Node.js version | **22.x** |
+| Node.js | **22.x** |
+| Framework | **Express.js** ou **Other** |
 | Root directory | `/` |
 | Build command | `npm install` |
 | Start command | `npm start` |
-| Entry file | `server.js` (se solicitado) |
+| Entry file | `server.js` |
+| Output directory | *(deixe vazio — app Express, não é build estático)* |
 
 ---
 
-## 3. Variáveis de ambiente (hPanel)
+## Passo 4 — Domínio
 
-Em **Environment variables** → **Import from .env file** ou adicione manualmente:
+Na etapa de domínio (ou depois em **Domains** do app):
+
+- Selecione **`moovelinks.com.br`**
+
+---
+
+## Passo 5 — Variáveis de ambiente
+
+**Environment variables** → cole ou importe:
 
 ```env
 NODE_ENV=production
 
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=sua_senha_forte_aqui
+ADMIN_PASSWORD=SUA_SENHA_FORTE_AQUI
 
-PUBLIC_URL=https://seu-dominio.com.br
+PUBLIC_URL=https://moovelinks.com.br
+DATABASE_URL=file:./data/links.db
 GEOIP_LOCAL_FALLBACK=Região de Teste
 TZ=America/Sao_Paulo
 ```
 
 **Não defina `PORT`** — a Hostinger injeta automaticamente.
 
-### Banco de dados
+---
 
-#### Opção A — SQLite (mais simples)
+## Passo 6 — Deploy
 
-```env
-DATABASE_URL=file:./data/links.db
-```
-
-- A pasta `data/` deve existir no projeto (já inclusa)
-- Após o primeiro deploy, garanta permissão de escrita em `data/` (Gerenciador de Arquivos ou SSH: `chmod 755 data`)
-- Faça backup periódico de `data/links.db`
-
-#### Opção B — PostgreSQL (recomendado para produção)
-
-1. **hPanel** → **Bancos de dados** → **PostgreSQL** → criar banco e usuário
-2. Use a connection string exata do painel:
-
-```env
-DATABASE_URL=postgresql://USUARIO:SENHA@HOST:5432/NOME_DO_BANCO
-DATABASE_SSL=true
-```
-
-3. Redeploy após salvar as variáveis
+1. Clique em **Deploy**
+2. Aguarde o build (`npm install` + `npm start`)
+3. Verifique o log: deve aparecer `[db] sqlite conectado`
+4. Ative/confirme **SSL** (HTTPS) para `moovelinks.com.br`
 
 ---
 
-## 4. Deploy e domínio
-
-1. Clique em **Deploy** e aguarde o build (`npm install`)
-2. Vincule seu domínio em **Domains**
-3. Ative **SSL** (HTTPS) no hPanel
-
----
-
-## 5. Testar após o deploy
+## Passo 7 — Testar
 
 | URL | Esperado |
 |-----|----------|
-| `https://seu-dominio.com.br/` | Página de links |
-| `https://seu-dominio.com.br/api/health` | JSON `{ "ok": true }` |
-| `https://seu-dominio.com.br/dashboard` | Login Basic Auth → painel |
-| `https://seu-dominio.com.br/admin` | Mesmo painel |
+| https://moovelinks.com.br/ | Página de links Moove Hub |
+| https://moovelinks.com.br/api/health | `{"ok":true,...}` |
+| https://moovelinks.com.br/dashboard | Login Basic Auth → analytics |
 
-Credenciais do dashboard: `ADMIN_USERNAME` + `ADMIN_PASSWORD` do hPanel.
+Credenciais do painel: `ADMIN_USERNAME` + `ADMIN_PASSWORD` do hPanel.
 
 ---
 
-## 6. Deploy via SSH + PM2 (VPS / plano com SSH)
+## Atualizar o código após mudanças
 
 ```bash
-cd ~/domains/seu-dominio.com/public_html
-git pull
-npm install --production
-pm2 restart links-moove-hub || pm2 start server.js --name links-moove-hub
-pm2 save
+git add .
+git commit -m "sua alteração"
+git push origin main
 ```
 
-Configure as mesmas variáveis no `.env` na pasta do app (nunca commite no Git).
+No painel do app Node.js → **Redeploy** (ou deploy automático se estiver ativo).
 
 ---
 
-## Checklist final
+## Checklist
 
-- [ ] `ADMIN_PASSWORD` forte definida no hPanel
-- [ ] `NODE_ENV=production`
-- [ ] `PUBLIC_URL` com `https://` e domínio correto
-- [ ] `PORT` **não** definida manualmente
-- [ ] Node 22.x selecionado
-- [ ] SSL ativo
-- [ ] `/api/health` responde OK
-- [ ] Dashboard pede login e exibe dados após acessos na página de links
+- [ ] Backup do WordPress baixado (opcional)
+- [ ] Site WordPress **moovelinks.com.br** removido
+- [ ] Node.js Web App criado com repo `LinksMooveHub`
+- [ ] Domínio `moovelinks.com.br` vinculado
+- [ ] `ADMIN_PASSWORD` definida
+- [ ] `PUBLIC_URL=https://moovelinks.com.br`
+- [ ] Deploy com sucesso
+- [ ] HTTPS ativo
+- [ ] Página e dashboard funcionando
 
 ---
 
@@ -136,8 +139,7 @@ Configure as mesmas variáveis no `.env` na pasta do app (nunca commite no Git).
 
 | Sintoma | Solução |
 |---------|---------|
-| Build falha | Verifique Node 22+ e logs do build no hPanel |
-| 503 no dashboard | Defina `ADMIN_PASSWORD` nas variáveis |
-| Analytics vazio | Acesse a página de links para gerar eventos; confira `DATABASE_URL` |
-| SQLite não grava | Permissão de escrita em `data/` |
-| PostgreSQL erro SSL | Use `DATABASE_SSL=true` |
+| Ainda aparece WordPress | Domínio ainda aponta para site antigo; remova o site WP e vincule ao app Node |
+| Build falha | Use Node **22.x**; veja logs do deploy |
+| 503 no dashboard | Defina `ADMIN_PASSWORD` |
+| Pasta `data/` sem escrita | File Manager → pasta `data` do app Node → permissão 755 |
