@@ -88,6 +88,23 @@ Depois de salvar → **Redeploy** obrigatório.
 
 Teste: https://moovelinks.com.br/api/health deve mostrar `"admin_configured":true`.
 
+### Se o hPanel NÃO injeta variáveis (admin_configured: false)
+
+Na Hostinger, `ADMIN_PASSWORD` do hPanel às vezes **não chega** ao Node. Use arquivo no servidor:
+
+1. **File Manager** → pasta do app Node (`domains/moovelinks.com.br/nodejs` ou a pasta que mostrar em `cwd` no `/api/health`)
+2. Crie o arquivo **`admin.secrets.json`** (mesma pasta do `server.js`):
+
+```json
+{
+  "username": "seu_email@exemplo.com",
+  "password": "sua_senha"
+}
+```
+
+3. **Restart** no painel do app Node (não precisa redeploy do Git)
+4. `/api/health` deve mostrar `"admin_config_source":"file"` e `"admin_configured":true`
+
 **Não defina `PORT`** — a Hostinger injeta automaticamente.
 
 ---

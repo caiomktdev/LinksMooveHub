@@ -1,11 +1,12 @@
-const path = require('path');
-
-// hPanel + arquivo .env na raiz do app (File Manager), se variáveis do painel falharem
-require('dotenv').config({ path: path.join(__dirname, '.env') });
-
 const { createApp } = require('./app');
 const { connectDatabase, getDialect } = require('./src/db');
-const { isAdminConfigured } = require('./src/config/adminCredentials');
+const {
+  loadAdminFromFiles,
+  isAdminConfigured,
+  getConfigSource,
+} = require('./src/config/adminCredentials');
+
+loadAdminFromFiles();
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -23,7 +24,7 @@ async function bootstrap() {
 
   console.log(`[db] ${getDialect()} conectado`);
   console.log(
-    `[admin] painel ${isAdminConfigured() ? 'configurado' : 'NÃO configurado — defina ADMIN_PASSWORD no hPanel'}`
+    `[admin] painel ${isAdminConfigured() ? 'configurado' : 'NÃO configurado'} (fonte: ${getConfigSource()})`
   );
 
   const server = app.listen(PORT, '0.0.0.0', () => {

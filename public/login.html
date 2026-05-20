@@ -254,7 +254,9 @@
           }
 
           if (res.status === 503) {
-            showError('Painel não configurado no servidor. Defina ADMIN_PASSWORD no hPanel.');
+            showError(
+              'Painel não configurado. No File Manager da Hostinger, crie admin.secrets.json na pasta do app (veja DEPLOY-HOSTINGER.md) e reinicie o Node.'
+            );
             return;
           }
 

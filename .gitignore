@@ -1,6 +1,7 @@
 node_modules/
 .env
 .env.local
+admin.secrets.json
 *.log
 data/*.db
 data/*.db-*
